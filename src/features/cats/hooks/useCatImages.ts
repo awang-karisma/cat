@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { fetchCatImages } from '../api/catApi';
 import type { CatImage } from '../types/cat';
 import { PAGINATION } from '../../../config/constants';
@@ -8,7 +8,8 @@ interface UseCatImagesReturn {
   isLoading: boolean;
   error: Error | null;
   hasMore: boolean;
-  loadMore: () => void;
+  loadedPages: Set<number>;
+  loadPage: (pageNum: number) => void;
   refresh: () => void;
 }
 
@@ -16,91 +17,68 @@ export function useCatImages(): UseCatImagesReturn {
   const [images, setImages] = useState<CatImage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [loadedPages, setLoadedPages] = useState<Set<number>>(new Set([1])); // Page 1 initially loaded
+  const hasMoreRef = useRef(true);
 
-  const loadImages = useCallback(async (pageNum: number, isRefresh: boolean = false) => {
+  const loadImages = useCallback(async (pageNum: number) => {
+    // Skip if already loaded
+    if (loadedPages.has(pageNum)) {
+      return [];
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
       const newImages = await fetchCatImages(pageNum, PAGINATION.DEFAULT_PAGE_SIZE);
 
-      if (isRefresh) {
-        setImages(newImages);
-      } else {
-        setImages(prev => [...prev, ...newImages]);
-      }
+      setImages(prev => {
+        // Deduplicate by ID
+        const existingIds = new Set(prev.map(img => img.id));
+        const uniqueNew = newImages.filter(img => !existingIds.has(img.id));
+        return [...prev, ...uniqueNew];
+      });
 
-      setHasMore(newImages.length > 0);
+      setLoadedPages(prev => new Set([...prev, pageNum]));
+      
+      const hasMore = newImages.length > 0;
+      hasMoreRef.current = hasMore;
+      
+      return newImages;
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to fetch images'));
+      return [];
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [loadedPages]);
 
-  // Initial load: fetch 2 pages (20 images) for better UX
+  // Initial load - just page 1
   useEffect(() => {
-    async function loadInitialPages() {
-      setIsLoading(true);
-      setError(null);
+    loadImages(1);
+  }, [loadImages]);
 
-      try {
-        // Fetch page 1 and page 2 in parallel
-        const [page1Images, page2Images] = await Promise.all([
-          fetchCatImages(1, PAGINATION.DEFAULT_PAGE_SIZE),
-          fetchCatImages(2, PAGINATION.DEFAULT_PAGE_SIZE),
-        ]);
-
-        // Deduplicate images by ID
-        const seenIds = new Set<string>();
-        const uniqueImages: CatImage[] = [];
-
-        for (const img of [...page1Images, ...page2Images]) {
-          if (!seenIds.has(img.id)) {
-            seenIds.add(img.id);
-            uniqueImages.push(img);
-          }
-        }
-
-        setImages(uniqueImages);
-        setHasMore(uniqueImages.length >= PAGINATION.DEFAULT_PAGE_SIZE);
-        setPage(2); // Start from page 2 for subsequent loads
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Failed to fetch initial images'));
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadInitialPages();
-  }, []);
-
-  const loadMore = useCallback(() => {
-    // Prevent loadMore during initial loading or if no more images
-    if (isLoading || !hasMore || images.length === 0) {
-      return;
-    }
-    const nextPage = page + 1;
-    setPage(nextPage);
-    loadImages(nextPage);
-  }, [isLoading, hasMore, page, loadImages, images.length]);
+  const loadPage = useCallback((pageNum: number) => {
+    if (!hasMoreRef.current) return;
+    loadImages(pageNum);
+  }, [loadImages]);
 
   const refresh = useCallback(() => {
-    setPage(1);
-    // Re-trigger the initial load effect
+    setLoadedPages(new Set([1]));
     setImages([]);
-  }, []);
+    hasMoreRef.current = true;
+    loadImages(1);
+  }, [loadImages]);
 
   const memoizedReturn = useMemo(() => ({
     images,
     isLoading,
     error,
-    hasMore,
-    loadMore,
+    hasMore: hasMoreRef.current,
+    loadedPages,
+    loadPage,
     refresh,
-  }), [images, isLoading, error, hasMore, loadMore, refresh]);
+  }), [images, isLoading, error, loadedPages, loadPage, refresh]);
 
   return memoizedReturn;
 }

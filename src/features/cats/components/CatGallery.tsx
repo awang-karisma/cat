@@ -1,50 +1,31 @@
-import { memo, useEffect, useRef, useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import { CatCard } from './CatCard';
 import { Loader } from '../../../components/common/Loader';
 import { Button } from '../../../components/common/Button';
 import { SkeletonCard } from '../../../components/common/SkeletonCard';
+import { Sentinel } from './Sentinel';
 import { useCatImages } from '../hooks/useCatImages';
 import { useFavorites } from '../../../features/favorites/hooks/useFavorites';
+import { PAGINATION } from '../../../config/constants';
 
 interface CatGalleryProps {
   className?: string;
 }
 
 export const CatGallery = memo(function CatGallery({ className = '' }: CatGalleryProps) {
-  const { images, isLoading, error, hasMore, loadMore, refresh } = useCatImages();
+  const { images, isLoading, error, hasMore, loadedPages, loadPage, refresh } = useCatImages();
   const { favoriteIds, toggleFavorite } = useFavorites();
-  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const handleToggleFavorite = useCallback((cat: { id: string; url: string }) => {
     toggleFavorite(cat.id, cat.url);
   }, [toggleFavorite]);
 
-  // Generate skeleton count based on limit (20 for initial load)
-  const skeletonCount = Array.from({ length: 20 }, (_, i) => i);
+  // Skeleton count based on page size
+  const skeletonCount = Array.from({ length: PAGINATION.DEFAULT_PAGE_SIZE }, (_, i) => i);
 
-  // Intersection Observer for infinite scroll
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoading) {
-          loadMore();
-        }
-      },
-      {
-        rootMargin: '200px',
-        threshold: 0,
-      }
-    );
-
-    observer.observe(sentinel);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [hasMore, isLoading, loadMore]);
+  // Calculate next page number for sentinel
+  const loadedPagesArray = Array.from(loadedPages);
+  const nextPage = loadedPagesArray.length > 0 ? Math.max(...loadedPagesArray) + 1 : 2;
 
   if (error) {
     return (
@@ -62,22 +43,32 @@ export const CatGallery = memo(function CatGallery({ className = '' }: CatGaller
     );
   }
 
+  // Show initial loading skeletons
+  if (isLoading && images.length === 0) {
+    return (
+      <div className={className}>
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 content-visibility-auto"
+          style={{ contain: 'content' }}
+        >
+          {skeletonCount.map((index) => (
+            <SkeletonCard key={`skeleton-${index}`} showFavorite={false} />
+          ))}
+        </div>
+        <div className="py-4 text-center">
+          <Loader className="h-8 inline-block" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={className}>
       <div
         className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 content-visibility-auto"
         style={{ contain: 'content' }}
       >
-        {/* Skeleton loading state */}
-        {isLoading && images.length === 0 && (
-          <>
-            {skeletonCount.map((index) => (
-              <SkeletonCard key={`skeleton-${index}`} showFavorite={false} />
-            ))}
-          </>
-        )}
-
-        {/* Actual cat cards */}
+        {/* Render all cat cards directly in grid */}
         {images.map(cat => (
           <CatCard
             key={cat.id}
@@ -86,15 +77,24 @@ export const CatGallery = memo(function CatGallery({ className = '' }: CatGaller
             onToggleFavorite={handleToggleFavorite}
           />
         ))}
+
+        {/* Sentinel placed at the end of the grid - triggers loading next page */}
+        <Sentinel
+          page={nextPage}
+          onLoadPage={loadPage}
+          hasMore={hasMore}
+          isLoading={isLoading}
+        />
       </div>
 
-      {/* Loading indicator for infinite scroll */}
+      {/* Loading indicator when fetching additional page */}
       {isLoading && images.length > 0 && (
         <div className="py-4 text-center">
           <Loader className="h-8 inline-block" />
         </div>
       )}
 
+      {/* End of content message */}
       {!hasMore && images.length > 0 && (
         <p className="text-center text-gray-500 py-4">
           You've seen all the cats! 🐱
@@ -106,9 +106,6 @@ export const CatGallery = memo(function CatGallery({ className = '' }: CatGaller
           No cat images found
         </div>
       )}
-
-      {/* Intersection observer sentinel */}
-      <div ref={sentinelRef} className="h-4" aria-hidden="true" />
     </div>
   );
 });

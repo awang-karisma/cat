@@ -33,3 +33,6 @@ npm-debug.log*
 .eslintcache
 
 .plan/
+
+.env.*
+!.env.example

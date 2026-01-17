@@ -48,7 +48,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: cat
-          directory: dist
+          # projectName: cat
+          # directory: dist
           # Optional: Add wrangler.toml for additional config
-          # wranglerConfig: wrangler.toml
+          wranglerConfig: wrangler.toml

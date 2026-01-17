@@ -25,11 +25,11 @@ export const RandomCatCard = memo(function RandomCatCard({
   // Animate when cat changes
   useEffect(() => {
     if (cat) {
-      setIsNew(true);
+      setTimeout(() => setIsNew(true), 0);
       const timer = setTimeout(() => setIsNew(false), 300);
       return () => clearTimeout(timer);
     }
-  }, [cat?.id]);
+  }, [cat]);
 
   // Effect to load initial cat
   useEffect(() => {

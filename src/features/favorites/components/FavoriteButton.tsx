@@ -16,7 +16,7 @@ export const FavoriteButton = memo(function FavoriteButton({
   // Trigger animation when favorited
   useEffect(() => {
     if (isFavorite(imageId)) {
-      setIsAnimating(true);
+      setTimeout(() => setIsAnimating(true), 0);
       const timer = setTimeout(() => setIsAnimating(false), 500);
       return () => clearTimeout(timer);
     }

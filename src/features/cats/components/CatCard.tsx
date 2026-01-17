@@ -29,6 +29,7 @@ export const CatCard = memo(function CatCard({
           alt={`Cat ${cat.id}`}
           className="w-full h-full"
           loading="lazy"
+          prefetch
         />
         <button
           onClick={handleFavoriteClick}

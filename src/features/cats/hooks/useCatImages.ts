@@ -32,7 +32,7 @@ export function useCatImages(): UseCatImagesReturn {
         setImages(prev => [...prev, ...newImages]);
       }
 
-      setHasMore(newImages.length === PAGINATION.DEFAULT_PAGE_SIZE);
+      setHasMore(newImages.length > 0);
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to fetch images'));
     } finally {
@@ -40,22 +40,58 @@ export function useCatImages(): UseCatImagesReturn {
     }
   }, []);
 
+  // Initial load: fetch 2 pages (20 images) for better UX
   useEffect(() => {
-    loadImages(1, true);
-  }, [loadImages]);
+    async function loadInitialPages() {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        // Fetch page 1 and page 2 in parallel
+        const [page1Images, page2Images] = await Promise.all([
+          fetchCatImages(1, PAGINATION.DEFAULT_PAGE_SIZE),
+          fetchCatImages(2, PAGINATION.DEFAULT_PAGE_SIZE),
+        ]);
+
+        // Deduplicate images by ID
+        const seenIds = new Set<string>();
+        const uniqueImages: CatImage[] = [];
+
+        for (const img of [...page1Images, ...page2Images]) {
+          if (!seenIds.has(img.id)) {
+            seenIds.add(img.id);
+            uniqueImages.push(img);
+          }
+        }
+
+        setImages(uniqueImages);
+        setHasMore(uniqueImages.length >= PAGINATION.DEFAULT_PAGE_SIZE);
+        setPage(2); // Start from page 2 for subsequent loads
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('Failed to fetch initial images'));
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadInitialPages();
+  }, []);
 
   const loadMore = useCallback(() => {
-    if (!isLoading && hasMore) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      loadImages(nextPage);
+    // Prevent loadMore during initial loading or if no more images
+    if (isLoading || !hasMore || images.length === 0) {
+      return;
     }
-  }, [isLoading, hasMore, page, loadImages]);
+    const nextPage = page + 1;
+    setPage(nextPage);
+    loadImages(nextPage);
+  }, [isLoading, hasMore, page, loadImages, images.length]);
 
   const refresh = useCallback(() => {
     setPage(1);
-    loadImages(1, true);
-  }, [loadImages]);
+    // Re-trigger the initial load effect
+    setImages([]);
+  }, []);
 
   const memoizedReturn = useMemo(() => ({
     images,

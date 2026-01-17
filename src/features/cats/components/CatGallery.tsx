@@ -19,8 +19,8 @@ export const CatGallery = memo(function CatGallery({ className = '' }: CatGaller
     toggleFavorite(cat.id, cat.url);
   }, [toggleFavorite]);
 
-  // Generate skeleton count based on limit
-  const skeletonCount = Array.from({ length: 8 }, (_, i) => i);
+  // Generate skeleton count based on limit (20 for initial load)
+  const skeletonCount = Array.from({ length: 20 }, (_, i) => i);
 
   // Intersection Observer for infinite scroll
   useEffect(() => {

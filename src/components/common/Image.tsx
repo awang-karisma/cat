@@ -1,4 +1,4 @@
-import { memo, useState, type ImgHTMLAttributes } from 'react';
+import { memo, useState, useEffect, type ImgHTMLAttributes } from 'react';
 import { IMAGE } from '../../config/constants';
 
 interface ImageProps extends ImgHTMLAttributes<HTMLImageElement> {
@@ -6,6 +6,7 @@ interface ImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   alt: string;
   className?: string;
   loading?: 'lazy' | 'eager';
+  prefetch?: boolean;
 }
 
 export const Image = memo(function Image({
@@ -13,10 +14,19 @@ export const Image = memo(function Image({
   alt,
   className = '',
   loading = 'lazy',
+  prefetch = false,
   ...props
 }: ImageProps) {
   const [error, setError] = useState(false);
   const [loaded, setLoaded] = useState(false);
+
+  // Prefetch image to browser cache
+  useEffect(() => {
+    if (prefetch && src) {
+      const img = document.createElement('img');
+      img.src = src;
+    }
+  }, [src, prefetch]);
 
   const handleError = () => {
     setError(true);

@@ -17,13 +17,12 @@ function mapApiResponseToCatImage(item: CatApiResponse): CatImage {
   };
 }
 
-export async function fetchCatImages(page: number = 1, limit: number = 20): Promise<CatImage[]> {
+export async function fetchCatImages(page: number = 1, limit: number = 10): Promise<CatImage[]> {
   try {
     const response = await api.get<CatApiResponse[]>(catApiEndpoints.IMAGES_SEARCH, {
       params: {
         page,
         limit,
-        has_breeds: true,
       },
     });
 

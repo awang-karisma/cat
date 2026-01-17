@@ -23,7 +23,7 @@ export const Header = memo(function Header({ className = '' }: HeaderProps) {
           </Link>
           <nav>
             <ul className="flex space-x-4">
-              {navItems.map(item => (
+              {navItems.map((item) => (
                 <li key={item.path}>
                   <Link
                     to={item.path}

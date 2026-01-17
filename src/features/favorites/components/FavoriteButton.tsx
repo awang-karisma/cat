@@ -22,18 +22,21 @@ export const FavoriteButton = memo(function FavoriteButton({
     }
   }, [isFavorite, imageId]);
 
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    // Trigger animation
-    if (!isFavorite(imageId)) {
-      setIsAnimating(true);
-      setTimeout(() => setIsAnimating(false), 500);
-    }
+      // Trigger animation
+      if (!isFavorite(imageId)) {
+        setIsAnimating(true);
+        setTimeout(() => setIsAnimating(false), 500);
+      }
 
-    toggleFavorite(imageId, imageUrl);
-  }, [toggleFavorite, imageId, imageUrl, isFavorite]);
+      toggleFavorite(imageId, imageUrl);
+    },
+    [toggleFavorite, imageId, imageUrl, isFavorite],
+  );
 
   const isActive = isFavorite(imageId);
 
@@ -43,9 +46,10 @@ export const FavoriteButton = memo(function FavoriteButton({
       className={`
         w-8 h-8 flex items-center justify-center
         rounded-full transition-all duration-300
-        ${isActive
-          ? 'bg-red-500 text-white shadow-lg'
-          : 'bg-white/80 backdrop-blur-sm text-gray-500 hover:bg-red-200 hover:text-red-500 shadow-md'
+        ${
+          isActive
+            ? 'bg-red-500 text-white shadow-lg'
+            : 'bg-white/80 backdrop-blur-sm text-gray-500 hover:bg-red-200 hover:text-red-500 shadow-md'
         }
         cursor-pointer
         ${isAnimating && isActive ? 'animate-heart-beat' : ''}

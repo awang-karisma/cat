@@ -37,9 +37,7 @@ export const CatCard = memo(function CatCard({
           aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
         >
           <svg
-            className={`w-5 h-5 ${
-              isFavorite ? 'text-red-500 fill-current' : 'text-gray-600'
-            }`}
+            className={`w-5 h-5 ${isFavorite ? 'text-red-500 fill-current' : 'text-gray-600'}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -55,13 +53,9 @@ export const CatCard = memo(function CatCard({
       </div>
       {cat.breeds && cat.breeds.length > 0 && (
         <div className="p-3">
-          <h3 className="font-semibold text-gray-800 truncate">
-            {cat.breeds[0].name}
-          </h3>
+          <h3 className="font-semibold text-gray-800 truncate">{cat.breeds[0].name}</h3>
           {cat.breeds[0].origin && (
-            <p className="text-sm text-gray-500">
-              Origin: {cat.breeds[0].origin}
-            </p>
+            <p className="text-sm text-gray-500">Origin: {cat.breeds[0].origin}</p>
           )}
         </div>
       )}

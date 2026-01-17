@@ -16,9 +16,12 @@ export const CatGallery = memo(function CatGallery({ className = '' }: CatGaller
   const { images, isLoading, error, hasMore, loadedPages, loadPage, refresh } = useCatImages();
   const { favoriteIds, toggleFavorite } = useFavorites();
 
-  const handleToggleFavorite = useCallback((cat: { id: string; url: string }) => {
-    toggleFavorite(cat.id, cat.url);
-  }, [toggleFavorite]);
+  const handleToggleFavorite = useCallback(
+    (cat: { id: string; url: string }) => {
+      toggleFavorite(cat.id, cat.url);
+    },
+    [toggleFavorite],
+  );
 
   // Skeleton count based on page size
   const skeletonCount = Array.from({ length: PAGINATION.DEFAULT_PAGE_SIZE }, (_, i) => i);
@@ -32,7 +35,12 @@ export const CatGallery = memo(function CatGallery({ className = '' }: CatGaller
       <div className={`text-center py-12 ${className}`}>
         <div className="text-red-500 mb-4">
           <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
           </svg>
         </div>
         <p className="text-gray-600 mb-4">{error.message}</p>
@@ -69,7 +77,7 @@ export const CatGallery = memo(function CatGallery({ className = '' }: CatGaller
         style={{ contain: 'content' }}
       >
         {/* Render all cat cards directly in grid */}
-        {images.map(cat => (
+        {images.map((cat) => (
           <CatCard
             key={cat.id}
             cat={cat}
@@ -79,12 +87,7 @@ export const CatGallery = memo(function CatGallery({ className = '' }: CatGaller
         ))}
 
         {/* Sentinel placed at the end of the grid - triggers loading next page */}
-        <Sentinel
-          page={nextPage}
-          onLoadPage={loadPage}
-          hasMore={hasMore}
-          isLoading={isLoading}
-        />
+        <Sentinel page={nextPage} onLoadPage={loadPage} hasMore={hasMore} isLoading={isLoading} />
       </div>
 
       {/* Loading indicator when fetching additional page */}
@@ -96,15 +99,11 @@ export const CatGallery = memo(function CatGallery({ className = '' }: CatGaller
 
       {/* End of content message */}
       {!hasMore && images.length > 0 && (
-        <p className="text-center text-gray-500 py-4">
-          You've seen all the cats! 🐱
-        </p>
+        <p className="text-center text-gray-500 py-4">You&apos;ve seen all the cats! 🐱</p>
       )}
 
       {!isLoading && images.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
-          No cat images found
-        </div>
+        <div className="text-center py-12 text-gray-500">No cat images found</div>
       )}
     </div>
   );

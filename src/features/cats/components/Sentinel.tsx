@@ -11,11 +11,11 @@ interface SentinelProps {
  * Sentinel component for page-starting infinite scroll pattern.
  * Triggers loading of the next page when this sentinel comes into view.
  */
-export const Sentinel = memo(function Sentinel({ 
-  page, 
-  onLoadPage, 
-  hasMore, 
-  isLoading 
+export const Sentinel = memo(function Sentinel({
+  page,
+  onLoadPage,
+  hasMore,
+  isLoading,
 }: SentinelProps) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -32,7 +32,7 @@ export const Sentinel = memo(function Sentinel({
       {
         rootMargin: '200px',
         threshold: 0,
-      }
+      },
     );
 
     observer.observe(element);
@@ -42,12 +42,5 @@ export const Sentinel = memo(function Sentinel({
     };
   }, [page, onLoadPage, hasMore, isLoading]);
 
-  return (
-    <div 
-      ref={ref} 
-      className="h-4" 
-      aria-hidden="true" 
-      data-page={page}
-    />
-  );
+  return <div ref={ref} className="h-4" aria-hidden="true" data-page={page} />;
 });

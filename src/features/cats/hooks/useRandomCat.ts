@@ -36,7 +36,7 @@ export function useRandomCat(): UseRandomCatReturn {
       error,
       refresh,
     }),
-    [cat, isLoading, error, refresh]
+    [cat, isLoading, error, refresh],
   );
 
   return returnValue;

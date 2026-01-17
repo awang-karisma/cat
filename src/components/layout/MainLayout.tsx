@@ -11,9 +11,7 @@ export const MainLayout = memo(function MainLayout({ children, className = '' }:
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className={`flex-1 ${className}`}>
-        {children}
-      </main>
+      <main className={`flex-1 ${className}`}>{children}</main>
       <Footer />
     </div>
   );

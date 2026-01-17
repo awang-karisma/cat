@@ -46,9 +46,7 @@ export const Image = memo(function Image({
 
   return (
     <div className={`relative ${className}`}>
-      {!loaded && (
-        <div className="absolute inset-0 bg-gray-200 animate-pulse" />
-      )}
+      {!loaded && <div className="absolute inset-0 bg-gray-200 animate-pulse" />}
       <img
         src={error ? IMAGE.FALLBACK_URL : src}
         alt={alt}

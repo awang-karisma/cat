@@ -10,11 +10,6 @@ export const catApiEndpoints = {
   FAVOURITES_DELETE: (id: string) => `${BASE_URL}/favourites/${id}`,
 } as const;
 
-export const imageMimeTypes = [
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-  'image/webp',
-] as const;
+export const imageMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'] as const;
 
 export type ImageMimeType = (typeof imageMimeTypes)[number];

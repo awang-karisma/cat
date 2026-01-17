@@ -43,16 +43,13 @@ export function useFavorites(): UseFavoritesReturn {
     }
   }, [favorites]);
 
-  const favoriteIds = useMemo(() => favorites.map(f => f.imageId), [favorites]);
+  const favoriteIds = useMemo(() => favorites.map((f) => f.imageId), [favorites]);
 
-  const isFavorite = useCallback(
-    (imageId: string) => favoriteIds.includes(imageId),
-    [favoriteIds],
-  );
+  const isFavorite = useCallback((imageId: string) => favoriteIds.includes(imageId), [favoriteIds]);
 
   const addFavorite = useCallback((imageId: string, imageUrl: string) => {
-    setFavorites(prev => {
-      if (prev.some(f => f.imageId === imageId)) return prev;
+    setFavorites((prev) => {
+      if (prev.some((f) => f.imageId === imageId)) return prev;
 
       return [
         ...prev,
@@ -67,7 +64,7 @@ export function useFavorites(): UseFavoritesReturn {
   }, []);
 
   const removeFavorite = useCallback((imageId: string) => {
-    setFavorites(prev => prev.filter(f => f.imageId !== imageId));
+    setFavorites((prev) => prev.filter((f) => f.imageId !== imageId));
   }, []);
 
   const toggleFavorite = useCallback(

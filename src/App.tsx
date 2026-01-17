@@ -3,10 +3,18 @@ import { Routes, Route } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
 import { Loader } from './components/common/Loader';
 
-const HomePage = lazy(() => import('./pages/HomePage').then(module => ({ default: module.HomePage })));
-const DiscoverPage = lazy(() => import('./pages/DiscoverPage').then(module => ({ default: module.DiscoverPage })));
-const FavoritesPage = lazy(() => import('./pages/FavoritesPage').then(module => ({ default: module.FavoritesPage })));
-const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(module => ({ default: module.NotFoundPage })));
+const HomePage = lazy(() =>
+  import('./pages/HomePage').then((module) => ({ default: module.HomePage })),
+);
+const DiscoverPage = lazy(() =>
+  import('./pages/DiscoverPage').then((module) => ({ default: module.DiscoverPage })),
+);
+const FavoritesPage = lazy(() =>
+  import('./pages/FavoritesPage').then((module) => ({ default: module.FavoritesPage })),
+);
+const NotFoundPage = lazy(() =>
+  import('./pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })),
+);
 
 function App() {
   return (

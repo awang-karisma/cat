@@ -6,6 +6,7 @@ type HeaderProps = ComponentProps;
 
 const navItems = [
   { path: '/', label: 'Home' },
+  { path: '/discover', label: 'Discover' },
   { path: '/favorites', label: 'Favorites' },
 ] as const;
 

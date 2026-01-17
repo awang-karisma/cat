@@ -1,30 +1,51 @@
-import { memo } from 'react';
+import { memo, useEffect, useRef, useCallback } from 'react';
 import { CatCard } from './CatCard';
 import { Loader } from '../../../components/common/Loader';
 import { Button } from '../../../components/common/Button';
-import type { CatImage } from '../types/cat';
+import { SkeletonCard } from '../../../components/common/SkeletonCard';
+import { useCatImages } from '../hooks/useCatImages';
+import { useFavorites } from '../../../features/favorites/hooks/useFavorites';
 
 interface CatGalleryProps {
-  images: CatImage[];
-  favoriteIds: string[];
-  isLoading: boolean;
-  error: Error | null;
-  hasMore: boolean;
-  onToggleFavorite: (cat: CatImage) => void;
-  onLoadMore: () => void;
   className?: string;
 }
 
-export const CatGallery = memo(function CatGallery({
-  images,
-  favoriteIds,
-  isLoading,
-  error,
-  hasMore,
-  onToggleFavorite,
-  onLoadMore,
-  className = '',
-}: CatGalleryProps) {
+export const CatGallery = memo(function CatGallery({ className = '' }: CatGalleryProps) {
+  const { images, isLoading, error, hasMore, loadMore, refresh } = useCatImages();
+  const { favoriteIds, toggleFavorite } = useFavorites();
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  const handleToggleFavorite = useCallback((cat: { id: string; url: string }) => {
+    toggleFavorite(cat.id, cat.url);
+  }, [toggleFavorite]);
+
+  // Generate skeleton count based on limit
+  const skeletonCount = Array.from({ length: 8 }, (_, i) => i);
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+          loadMore();
+        }
+      },
+      {
+        rootMargin: '200px',
+        threshold: 0,
+      }
+    );
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasMore, isLoading, loadMore]);
+
   if (error) {
     return (
       <div className={`text-center py-12 ${className}`}>
@@ -34,7 +55,7 @@ export const CatGallery = memo(function CatGallery({
           </svg>
         </div>
         <p className="text-gray-600 mb-4">{error.message}</p>
-        <Button onClick={() => window.location.reload()} variant="primary">
+        <Button onClick={refresh} variant="primary">
           Try Again
         </Button>
       </div>
@@ -47,28 +68,37 @@ export const CatGallery = memo(function CatGallery({
         className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 content-visibility-auto"
         style={{ contain: 'content' }}
       >
+        {/* Skeleton loading state */}
+        {isLoading && images.length === 0 && (
+          <>
+            {skeletonCount.map((index) => (
+              <SkeletonCard key={`skeleton-${index}`} showFavorite={false} />
+            ))}
+          </>
+        )}
+
+        {/* Actual cat cards */}
         {images.map(cat => (
           <CatCard
             key={cat.id}
             cat={cat}
             isFavorite={favoriteIds.includes(cat.id)}
-            onToggleFavorite={onToggleFavorite}
+            onToggleFavorite={handleToggleFavorite}
           />
         ))}
       </div>
 
-      {isLoading && (
-        <div className="py-8">
-          <Loader className="h-12" />
+      {/* Loading indicator for infinite scroll */}
+      {isLoading && images.length > 0 && (
+        <div className="py-4 text-center">
+          <Loader className="h-8 inline-block" />
         </div>
       )}
 
-      {!isLoading && hasMore && (
-        <div className="py-8 text-center">
-          <Button onClick={onLoadMore} variant="secondary">
-            Load More
-          </Button>
-        </div>
+      {!hasMore && images.length > 0 && (
+        <p className="text-center text-gray-500 py-4">
+          You've seen all the cats! 🐱
+        </p>
       )}
 
       {!isLoading && images.length === 0 && (
@@ -76,6 +106,9 @@ export const CatGallery = memo(function CatGallery({
           No cat images found
         </div>
       )}
+
+      {/* Intersection observer sentinel */}
+      <div ref={sentinelRef} className="h-4" aria-hidden="true" />
     </div>
   );
 });
